@@ -2,7 +2,6 @@ package com.lincon.OpenSearchpoc.controller;
 
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.service.SaleService;
-import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,10 +30,10 @@ public class OpenSearchController {
     }
 
     @GetMapping("/getv1")
-    public IndexResponse getv1() throws IOException {
+    public String getv1() throws IOException {
         List<Sale> sales = saleService.loadSales();
 
-        return  saleService.save(sales.get(0));
+        return saleService.save(sales.get(0));
     }
 
     @GetMapping("/getv2")
@@ -56,5 +55,11 @@ public class OpenSearchController {
         List<Sale> sales = saleService.loadSales();
 
         return  saleService.delete(sales.get(0));
+    }
+
+    @GetMapping("/getv5")
+    public List<Sale> getv5() throws IOException {
+
+        return  saleService.findAll();
     }
 }
