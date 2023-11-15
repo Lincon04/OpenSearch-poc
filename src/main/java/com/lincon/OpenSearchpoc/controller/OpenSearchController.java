@@ -1,14 +1,9 @@
 package com.lincon.OpenSearchpoc.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lincon.OpenSearchpoc.dto.Sale;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.FieldValue;
-import org.opensearch.client.opensearch.core.BulkRequest;
-import org.opensearch.client.opensearch.core.BulkResponse;
-import org.opensearch.client.opensearch.core.SearchResponse;
+import com.lincon.OpenSearchpoc.service.SaleService;
+import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
-import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,45 +17,44 @@ import java.util.List;
 public class OpenSearchController {
 
     @Autowired
-    private OpenSearchClient openSearchClient;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private SaleService saleService;
 
     @GetMapping("/get")
-    public Sale get() throws IOException {
-        SearchResponse<Sale> response = openSearchClient.search(s -> s.index("sales")
-                .query(q -> q.match(m -> m.field("nsu").query(FieldValue.of(993484)))), Sale.class);
-
-        System.out.println(response.hits().hits());
-
-        List<Hit<Sale>> retorno = response.hits().hits();
-        return retorno.get(0).source();
+    public Sale get(String id) throws IOException {
+        return saleService.findById(id);
     }
 
     @GetMapping("/put")
-    public Sale put() throws IOException {
-        List<Sale> sales = new Sale().loadSales();
-        BulkRequest.Builder br = new BulkRequest.Builder();
+    public List<BulkResponseItem> put() throws IOException {
 
-//        for (Sale sale: sales){
-//            br.operations(op-> op.index(idx -> idx.index("sales").id(sale.getNsu().toString()).document(sale)));
-//        }
+        return saleService.saveAll(saleService.loadSales());
+    }
 
-        for (Sale sale: sales){
-            br.operations(op-> op.delete(builder -> builder.index("sales").id(sale.getNsu().toString())));
-        }
+    @GetMapping("/getv1")
+    public IndexResponse getv1() throws IOException {
+        List<Sale> sales = saleService.loadSales();
 
-        BulkResponse result = openSearchClient.bulk(br.build());
+        return  saleService.save(sales.get(0));
+    }
 
-        if (result.errors()) {
-            System.out.println("Bulk had errors");
-            for (BulkResponseItem item: result.items()) {
-                if (item.error() != null) {
-                    System.out.println(item.error().reason());
-                }
-            }
-        }
-        return sales.get(0);
+    @GetMapping("/getv2")
+    public Sale getv2() throws IOException {
+        List<Sale> sales = saleService.loadSales();
+
+        return  saleService.findById(sales.get(0).getNsu().toString(), sales.get(0));
+    }
+
+    @GetMapping("/getv3")
+    public Sale getv3() throws IOException {
+        List<Sale> sales = saleService.loadSales();
+
+        return  saleService.update(sales.get(0), sales.get(1));
+    }
+
+    @GetMapping("/getv4")
+    public boolean getv4() throws IOException {
+        List<Sale> sales = saleService.loadSales();
+
+        return  saleService.delete(sales.get(0));
     }
 }
