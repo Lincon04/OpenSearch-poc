@@ -2,7 +2,6 @@ package com.lincon.OpenSearchpoc.controller;
 
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.service.SaleService;
-import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,47 +18,41 @@ public class OpenSearchController {
     private SaleService saleService;
 
     @GetMapping("/get")
-    public Sale get(String id) throws IOException {
-        return saleService.findById(id);
+    public Sale get(String id) {
+        return saleService.findByIdUsingGetRequest(id);
     }
 
     @GetMapping("/put")
-    public List<BulkResponseItem> put() throws IOException {
-
+    public String put() throws IOException {
         return saleService.saveAll(saleService.loadSales());
     }
 
     @GetMapping("/getv1")
     public String getv1() throws IOException {
         List<Sale> sales = saleService.loadSales();
-
         return saleService.save(sales.get(0));
     }
 
     @GetMapping("/getv2")
     public Sale getv2() throws IOException {
         List<Sale> sales = saleService.loadSales();
-
-        return  saleService.findById(sales.get(0).getNsu().toString(), sales.get(0));
+        return  saleService.findByIdUsingSearch(sales.get(0).getNsu().toString());
     }
 
     @GetMapping("/getv3")
-    public Sale getv3() throws IOException {
+    public String getv3() throws IOException {
         List<Sale> sales = saleService.loadSales();
-
-        return  saleService.update(sales.get(0), sales.get(1));
+        return saleService.update(sales.get(0));
     }
 
     @GetMapping("/getv4")
-    public boolean getv4() throws IOException {
+    public String getv4() throws IOException {
         List<Sale> sales = saleService.loadSales();
-
         return  saleService.delete(sales.get(0));
     }
 
     @GetMapping("/getv5")
     public List<Sale> getv5() throws IOException {
-
         return  saleService.findAll();
     }
 }

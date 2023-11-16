@@ -6,25 +6,20 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.repository.SaleRepository;
 import lombok.AllArgsConstructor;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.FieldValue;
-import org.opensearch.client.opensearch._types.Result;
-import org.opensearch.client.opensearch.core.*;
+import org.opensearch.client.opensearch.core.BulkResponse;
+import org.opensearch.client.opensearch.core.GetResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 
 @Service
 @AllArgsConstructor
 public class SaleService {
-
-    private OpenSearchClient openSearchClient;
 
     private ObjectMapper objectMapper;
 
@@ -36,7 +31,6 @@ public class SaleService {
         return objectMapper.readValue(file, type);
     }
 
-    //01 Metodos para criar um indice caso não exista, inserir novos documentos
     public String save(Sale sale) {
         try {
             saleRepository.save(sale);
@@ -46,101 +40,85 @@ public class SaleService {
         return "Documento criado com sucesso!";
     }
 
-    public List<BulkResponseItem> saveAll(List<Sale> sales) throws IOException {
-        BulkRequest.Builder br = new BulkRequest.Builder();
-
-        for (Sale sale: sales){
-            br.operations(op-> op.index(idx -> idx.index("sales").id(sale.getDataVenda()+sale.getNsu()).document(sale)));
-        }
-
-        BulkResponse result = openSearchClient.bulk(br.build());
-
-        if (result.errors()) {
-            System.out.println("Bulk had errors");
-            for (BulkResponseItem item: result.items()) {
-                if (item.error() != null) {
-                    System.out.println(item.error().reason());
+    public String saveAll(List<Sale> sales) {
+        try {
+            BulkResponse result = saleRepository.saveAll(sales);
+            if (result.errors()) {
+                System.out.println("Bulk had errors");
+                for (BulkResponseItem item : result.items()) {
+                    if (item.error() != null) {
+                        System.out.println(item.error().reason());
+                    }
                 }
+                return "Error on save same sales";
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        return result.items();
+        return "Save sales with success!";
     }
 
-    //02 Metodos para consultar um documneto, pelo id
-    public Sale findById(String id, Sale sale) throws IOException {
-        GetRequest request = new GetRequest.Builder().index("salesv1").id(sale.getNsu().toString()).build();
-        GetResponse<Sale> response = openSearchClient.get(request, Sale.class);
-        System.out.println(response);
-        return response.source();
-    }
-
-    public Sale findById(String id) throws IOException {
-        SearchResponse<Sale> response = openSearchClient.search(s -> s.index("sales")
-                .query(q -> q.match(m -> m.field("nsu").query(FieldValue.of(993484)))), Sale.class);
-
-        System.out.println(response.hits().hits());
-
-        List<Hit<Sale>> retorno = response.hits().hits();
-        return retorno.get(0).source();
-    }
-
-    //03 Metodos para atualizar um documento
-    public Sale update(Sale sale, Sale sale1) throws IOException {
-        UpdateRequest<Sale, Sale> updateRequest = new UpdateRequest.Builder<Sale, Sale>().index("salesv1").id(sale.getNsu().toString()).doc(sale1).build();
-        UpdateResponse<Sale> updateResponse = openSearchClient.update(updateRequest, Sale.class);
-        assert updateResponse.get() != null;
-        return sale1;
-    }
-
-    //04 Metodos para deletar um documento
-    public boolean delete(Sale sale) throws IOException {
-        DeleteRequest deleteRequest = new DeleteRequest.Builder().index("salesv1").id(sale.getNsu().toString()).build();
-        DeleteResponse deleteResponse = openSearchClient.delete(deleteRequest);
-        return deleteResponse.result().equals(Result.Deleted);
-    }
-
-    public boolean deleteAll(List<Sale> sales) throws IOException {
-        BulkRequest.Builder br = new BulkRequest.Builder();
-
-        for (Sale sale: sales){
-            br.operations(op-> op.delete(builder -> builder.index("sales").id(sale.getNsu().toString())));
+    public Sale findByIdUsingGetRequest(String id) {
+        try {
+            GetResponse<Sale> response = saleRepository.findByIdUsingGetRequest(id);
+            return response.source();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
 
-        BulkResponse result = openSearchClient.bulk(br.build());
+    public Sale findByIdUsingSearch(String id)  {
+        try {
+            List<Hit<Sale>> retorno = saleRepository.findByIdUsingSearch(id);
+            if(!retorno.isEmpty()){
+                return retorno.get(0).source();
+            }
+            return new Sale();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        if (result.errors()) {
-            System.out.println("Bulk had errors");
-            for (BulkResponseItem item: result.items()) {
-                if (item.error() != null) {
-                    System.out.println(item.error().reason());
+    public String update(Sale sale) {
+        try {
+            saleRepository.update(sale, sale.getDataVenda()+sale.getNsu());
+            return "Update with success";
+        } catch (IOException e) {
+            return "Update Fail";
+        }
+    }
+
+    public String delete(Sale sale) {
+        try {
+            boolean isDeleted = saleRepository.delete(sale);
+            if(isDeleted) {
+                return "Deleted doc with success";
+            }
+        } catch (IOException e) {
+            return "Error on process of delete";
+        }
+        return "Deleted Fail";
+    }
+
+    public String deleteAll(List<Sale> sales) {
+        try {
+            BulkResponse result = saleRepository.deleteAll(sales);
+            if (result.errors()) {
+                System.out.println("Bulk had errors");
+                for (BulkResponseItem item : result.items()) {
+                    if (item.error() != null) {
+                        System.out.println(item.error().reason());
+                    }
                 }
+                return "Error on delete same sales";
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        return result.errors();
+        return "Delete sales with success!";
     }
 
     public List<Sale> findAll() throws IOException {
-
-        SearchRequest searchRequest = SearchRequest
-                .of(builder -> builder
-                        .index("sales")
-                        .query(q-> q
-                                .matchAll(m-> m
-                                        .queryName("_search")
-                                )
-                        ).size(100)
-                );
-
-        SearchResponse<Sale> searchResponse = openSearchClient.search(searchRequest, Sale.class);
-
-        List<Sale> sales = new ArrayList<>();
-        // Imprime os resultados
-        for (Hit<Sale> hisSale : searchResponse.hits().hits()) {
-            sales.add(hisSale.source());
-        }
-        return sales;
-
+        return saleRepository.findAll();
     }
 }
