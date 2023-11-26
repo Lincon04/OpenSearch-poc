@@ -3,6 +3,7 @@ package com.lincon.OpenSearchpoc.service;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.repository.SaleRepository;
 import lombok.AllArgsConstructor;
@@ -70,6 +71,18 @@ public class SaleService {
     public Sale findByIdUsingSearch(String id)  {
         try {
             List<Hit<Sale>> retorno = saleRepository.findByIdUsingSearch(id);
+            if(!retorno.isEmpty()){
+                return retorno.get(0).source();
+            }
+            return new Sale();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Sale findByIdAndPvUsingSearch(SaleFilter saleFilter)  {
+        try {
+            List<Hit<Sale>> retorno = saleRepository.findByIdAndPvUsingSearch(saleFilter);
             if(!retorno.isEmpty()){
                 return retorno.get(0).source();
             }
