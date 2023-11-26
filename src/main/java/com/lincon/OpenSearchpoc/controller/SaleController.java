@@ -31,8 +31,15 @@ public class SaleController {
         return saleService.findByIdUsingSearch(nsu);
     }
 
-    @GetMapping("/getPvNsu")
-    public Sale getPvNsu(SaleFilter saleFilter){
-        return saleService.findByIdAndPvUsingSearch(saleFilter);
+    @GetMapping("/getAll")
+    public Sale getAll(SaleFilter saleFilter){
+        return saleService.findAll(saleFilter);
     }
+
+    @GetMapping("/getByRange")
+    public Sale getByRange(SaleFilter saleFilter){
+        return saleService.findByRange(saleFilter);
+    }
+
+
 }

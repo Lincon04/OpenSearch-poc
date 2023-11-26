@@ -1,5 +1,6 @@
 package com.lincon.OpenSearchpoc.controller;
 
+import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.service.SaleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +55,10 @@ public class OpenSearchController {
     @GetMapping("/getv5")
     public List<Sale> getv5() throws IOException {
         return  saleService.findAll();
+    }
+
+    @GetMapping("/getRange")
+    public Sale getPvNsu(SaleFilter saleFilter){
+        return saleService.findByRangeSearch(saleFilter);
     }
 }

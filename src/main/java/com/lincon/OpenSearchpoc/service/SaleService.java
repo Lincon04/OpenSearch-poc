@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.repository.SaleRepository;
+import com.lincon.OpenSearchpoc.repository.SaleRepositoryNewSearch;
 import lombok.AllArgsConstructor;
 import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.GetResponse;
@@ -25,6 +26,8 @@ public class SaleService {
     private ObjectMapper objectMapper;
 
     private SaleRepository saleRepository;
+
+    private SaleRepositoryNewSearch saleRepositoryNewSearch;
 
     public List<Sale> loadSales() throws IOException {
         File file = new File("C:\\Dev\\projetos\\OpenSearch-poc\\src\\main\\resources\\static\\Sales.json");
@@ -79,10 +82,9 @@ public class SaleService {
             throw new RuntimeException(e);
         }
     }
-
-    public Sale findByIdAndPvUsingSearch(SaleFilter saleFilter)  {
+    public Sale findByRangeSearch(SaleFilter saleFilter)  {
         try {
-            List<Hit<Sale>> retorno = saleRepository.findByIdAndPvUsingSearch(saleFilter);
+            List<Hit<Sale>> retorno = saleRepository.findByRangeDateSearch(saleFilter);
             if(!retorno.isEmpty()){
                 return retorno.get(0).source();
             }
@@ -91,6 +93,8 @@ public class SaleService {
             throw new RuntimeException(e);
         }
     }
+
+
 
     public String update(Sale sale) {
         try {
@@ -133,5 +137,33 @@ public class SaleService {
 
     public List<Sale> findAll() throws IOException {
         return saleRepository.findAll();
+    }
+
+    /*
+        Busca usando o filter como base para montar o objeto Query de forma dinamica
+     */
+
+    public Sale findByRange(SaleFilter saleFilter)  {
+        try {
+            List<Hit<Sale>> retorno = saleRepositoryNewSearch.findByRange(saleFilter);
+            if(!retorno.isEmpty()){
+                return retorno.get(0).source();
+            }
+            return new Sale();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Sale findAll(SaleFilter saleFilter)  {
+        try {
+            List<Hit<Sale>> retorno = saleRepositoryNewSearch.findAll(saleFilter);
+            if(!retorno.isEmpty()){
+                return retorno.get(0).source();
+            }
+            return new Sale();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
