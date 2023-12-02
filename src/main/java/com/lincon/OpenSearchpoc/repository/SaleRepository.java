@@ -6,8 +6,6 @@ import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.Result;
-import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
-import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,21 +100,24 @@ public class SaleRepository {
         return response.hits().hits();
     }
 
-    public List<Hit<Sale>> findAll(String pv, Long nsu) throws IOException {
+    public List<Hit<Sale>> findAllBy(SaleFilter saleFilter) throws IOException {
+        JsonData saledate= JsonData.of(saleFilter.getStartDataVenda());
+        JsonData paymentdate= JsonData.of(saleFilter.getDataRecebimento());
         SearchRequest searchRequest = new SearchRequest.Builder().index("sales")
                 .query(q -> q.
                         bool(b -> b
                                 .must(m -> m
                                         .match(f -> f
                                                 .field("pv")
-                                                .query(FieldValue.of(pv))
+                                                .query(FieldValue.of(saleFilter.getPv()))
                                         )
                                 ).must(m -> m
                                         .match(f -> f
                                                 .field("nsu")
-                                                .query(FieldValue.of(nsu))
+                                                .query(FieldValue.of(saleFilter.getNsu()))
                                         )
-                                )
+                                ).must(m -> m.range(f -> f.field("data_venda").gte(saledate)))
+                                .must(m -> m.range(f -> f.field("data_recebimento").gte(paymentdate)))
                         )
                 ).build();
         SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
@@ -124,8 +125,8 @@ public class SaleRepository {
     }
 
     public List<Hit<Sale>> findByRangeDateSearch(SaleFilter saleFilter) throws IOException {
-        JsonData saledate= JsonData.of(saleFilter.getData_venda());
-        JsonData paymentdate= JsonData.of(saleFilter.getData_recebimento());
+        JsonData saledate= JsonData.of(saleFilter.getStartDataVenda());
+        JsonData paymentdate= JsonData.of(saleFilter.getDataRecebimento());
         SearchRequest searchRequest = new SearchRequest.Builder().index(INDEX)
                 .query(query -> query
                         .range(range-> range

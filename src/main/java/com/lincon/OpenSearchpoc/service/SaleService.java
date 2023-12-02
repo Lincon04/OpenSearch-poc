@@ -139,6 +139,18 @@ public class SaleService {
         return saleRepository.findAll();
     }
 
+    public Sale findAllBy(SaleFilter saleFilter)  {
+        try {
+            List<Hit<Sale>> retorno = saleRepository.findAllBy(saleFilter);
+            if(!retorno.isEmpty()){
+                return retorno.get(0).source();
+            }
+            return new Sale();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /*
         Busca usando o filter como base para montar o objeto Query de forma dinamica
      */

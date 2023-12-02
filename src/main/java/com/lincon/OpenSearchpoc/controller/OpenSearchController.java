@@ -61,4 +61,9 @@ public class OpenSearchController {
     public Sale getPvNsu(SaleFilter saleFilter){
         return saleService.findByRangeSearch(saleFilter);
     }
+
+    @GetMapping("/getv6")
+    public Sale getv6(SaleFilter saleFilter) {
+        return  saleService.findAllBy(saleFilter);
+    }
 }

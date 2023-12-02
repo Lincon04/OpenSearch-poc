@@ -11,7 +11,7 @@ public class PlayGround {
         SaleFilter saleFilter = new SaleFilter();
         saleFilter.setPv("651615");
         saleFilter.setNsu(65464L);
-        saleFilter.setData_venda("2023-03-06");
+        saleFilter.setStartDataVenda("2023-03-06");
         Class<?> c = saleFilter.getClass();
         Field[] fields = c.getDeclaredFields();
         for (Field f: fields){
