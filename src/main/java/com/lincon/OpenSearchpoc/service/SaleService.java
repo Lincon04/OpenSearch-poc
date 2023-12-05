@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
+import com.lincon.OpenSearchpoc.dto.SaleResponse;
 import com.lincon.OpenSearchpoc.repository.SaleRepository;
 import com.lincon.OpenSearchpoc.repository.SaleRepositoryNewSearch;
 import lombok.AllArgsConstructor;
@@ -151,29 +152,17 @@ public class SaleService {
         }
     }
 
-    /*
-        Busca usando o filter como base para montar o objeto Query de forma dinamica
-     */
 
-    public Sale findByRange(SaleFilter saleFilter)  {
+    public SaleResponse findAll(SaleFilter saleFilter)  {
         try {
-            List<Hit<Sale>> retorno = saleRepositoryNewSearch.findByRange(saleFilter);
-            if(!retorno.isEmpty()){
-                return retorno.get(0).source();
-            }
-            return new Sale();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Sale findAll(SaleFilter saleFilter)  {
-        try {
+            SaleResponse saleResponse = new SaleResponse();
             List<Hit<Sale>> retorno = saleRepositoryNewSearch.findAll(saleFilter);
             if(!retorno.isEmpty()){
-                return retorno.get(0).source();
+                for (Hit<Sale> hits: retorno){
+                    saleResponse.getSales().add(hits.source());
+                }
             }
-            return new Sale();
+            return saleResponse;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

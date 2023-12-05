@@ -2,7 +2,7 @@ package com.lincon.OpenSearchpoc.repository;
 
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
-import com.lincon.OpenSearchpoc.reflection.QuerySearchable;
+import com.lincon.OpenSearchpoc.reflection.SearchableQuery;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.SearchRequest;
@@ -22,26 +22,11 @@ public class SaleRepositoryNewSearch {
 
     private static final String INDEX = "sales";
 
-    public List<Hit<Sale>> findByRange(SaleFilter saleFilter) throws IOException {
-        SaleQueryBuilder saleQueryBuilder = new SaleQueryBuilder(saleFilter);
-        SearchRequest searchRequest = new SearchRequest.Builder().index(INDEX)
-                .query(saleQueryBuilder.findByRange(saleFilter.getStartDataVenda(), saleFilter.getDataRecebimento())).build();
-        SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
-        return response.hits().hits();
-    }
-
-//    public List<Hit<Sale>> findAll(SaleFilter saleFilter) throws IOException {
-//        SaleQueryBuilder saleQueryBuilder = new SaleQueryBuilder(saleFilter);
-//        SearchRequest searchRequest = new SearchRequest.Builder().index(INDEX)
-//                .query(saleQueryBuilder.findAll()).build();
-//        SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
-//        return response.hits().hits();
-//    }
 
     public List<Hit<Sale>> findAll(SaleFilter saleFilter) throws IOException {
-        QuerySearchable<SaleFilter> searchable = new QuerySearchable<>(saleFilter);
+        SearchableQuery<SaleFilter> searchable = new SearchableQuery<>(saleFilter);
         Query query = searchable.findAll();
-        SearchRequest searchRequest = new SearchRequest.Builder().index(INDEX).query(query).build();
+        SearchRequest searchRequest = new SearchRequest.Builder().index(INDEX).query(query).size(100).build();
         SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
         return response.hits().hits();
     }

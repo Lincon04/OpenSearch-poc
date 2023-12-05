@@ -2,6 +2,7 @@ package com.lincon.OpenSearchpoc.controller;
 
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
+import com.lincon.OpenSearchpoc.dto.SaleResponse;
 import com.lincon.OpenSearchpoc.service.SaleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,13 +33,8 @@ public class SaleController {
     }
 
     @GetMapping("/getAll")
-    public Sale getAll(SaleFilter saleFilter){
+    public SaleResponse getAll(SaleFilter saleFilter){
         return saleService.findAll(saleFilter);
-    }
-
-    @GetMapping("/getByRange")
-    public Sale getByRange(SaleFilter saleFilter){
-        return saleService.findByRange(saleFilter);
     }
 
 

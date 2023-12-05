@@ -1,44 +1,51 @@
 package com.lincon.OpenSearchpoc.reflection;
 
-import lombok.AllArgsConstructor;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-@AllArgsConstructor
-public class QuerySearchable<T> extends RangeSearchableClass {
+public class SearchableQuery<T> extends RangeSearchableQuery {
+
     private final List<Query> queryList = new ArrayList<>();
+
+    private final Map<String, FieldValue> searchableFields = new HashMap<>();
 
     private final T filter;
 
     public Query findAll() {
-        Class<?> clazz = filter.getClass();
-        handleWithSearchable(clazz.getDeclaredFields());
-        addQuery(getRangeQuery());
+        buildDefaultQuery();
+        addQuery(buildRangeQuery());
         return Query.of(query -> query.bool(bool -> bool.must(this.queryList))).bool()._toQuery();
     }
 
-    private void handleWithSearchable(Field[] fields) {
-        for (Field field : fields) {
-            this.fieldToQuery(field);
-        }
+    public SearchableQuery(T filter){
+        this.filter = filter;
+        initialize(filter.getClass().getDeclaredFields());
     }
 
-    private void fieldToQuery(Field field) {
-        field.setAccessible(true);
-        FieldValue attributeValue = getFieldValue(field);
-        if (attributeValue != null) {
-            if (field.isAnnotationPresent(Searchable.class)) {
-                addQueryFrom(field, attributeValue);
-            } else if (field.isAnnotationPresent(RangeSearchable.class)) {
-                updateRangeSearchableValues(field, attributeValue);
+    private void initialize(Field[] fields) {
+        for (Field field : fields) {
+            FieldValue fieldValue = getFieldValue(field);
+            if(fieldValue != null){
+                if(field.isAnnotationPresent(Searchable.class)){
+                    prepareFieldsForQuery(field, fieldValue);
+                }
+                if(field.isAnnotationPresent(RangeSearchable.class)){
+                    prepareFieldsForRangeQuery(field, fieldValue);
+                }
             }
         }
     }
 
+    private void prepareFieldsForQuery(Field field, FieldValue fieldValue) {
+        searchableFields.put(field.getAnnotation(Searchable.class).attributeName(), fieldValue);
+    }
+
+
     private FieldValue getFieldValue(Field field) {
+        field.setAccessible(true);
         try {
             if (field.get(this.filter) instanceof String) {
                 return FieldValue.of((String) field.get(this.filter));
@@ -56,22 +63,16 @@ public class QuerySearchable<T> extends RangeSearchableClass {
         return null;
     }
 
-    private void addQueryFrom(Field field, FieldValue attributeValue) {
-        Searchable searchable = field.getAnnotation(Searchable.class);
-        String attributeName = searchable.attributeName();
-        addQuery(this.getQuery(attributeName, attributeValue));
+    public void buildDefaultQuery(){
+        this.searchableFields.forEach((attribute, value)->{
+            addQuery(Query.of(builder -> builder.match(match -> match.field(attribute).query(value))));
+        });
     }
 
     private void addQuery(Query query) {
         if (query != null) {
             this.queryList.add(query);
         }
-    }
-
-    private void updateRangeSearchableValues(Field field, FieldValue attributeValue) {
-        setRangeSearchable(field.getAnnotation(RangeSearchable.class));
-        updateAttributeName();
-        updateStartDateOrEndDate(attributeValue);
     }
 
     private Query getQuery(String attribute, FieldValue value) {

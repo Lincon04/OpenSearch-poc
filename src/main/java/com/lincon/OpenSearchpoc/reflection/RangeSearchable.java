@@ -11,4 +11,5 @@ public @interface RangeSearchable {
     String attributeName();
 
     BaseDateEnum baseDate();
+
 }
