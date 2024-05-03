@@ -1,0 +1,49 @@
+GET sales/_search?
+{
+  "query": {
+    "match": {
+      "data_venda": "2023-03-04"
+    }
+  }
+}
+
+GET sales/_search?
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "pv": 258949694
+          }
+        },
+        {
+          "match": {
+            "nsu": 993484
+          }
+        }
+      ]
+    }
+  }
+}
+
+POST salesv1/_bulk
+{"create":{}}
+{"pv":258949694,"data_venda":"2023-03-04","nsu":993484,"rv_number":807350,"valor_bruto":656.23,"desconto":12.95,"valor_liquido":643.28,"modalidade":"Debito","meio_de_pagamento":10,"maquininha":"RO51596569","quantidade_parcelas":1,"parcela":1,"data_recebimento":"2023-03-05"}
+{"create":{}}
+{"pv":178941715,"data_venda":"2023-03-07","nsu":14596,"rv_number":902814,"valor_bruto":782.85,"desconto":23,"valor_liquido":759.85,"modalidade":"Debito","meio_de_pagamento":60,"maquininha":"LG8949694","quantidade_parcelas":1,"parcela":1,"data_recebimento":"2023-03-08"}
+{"create":{}}
+{"pv":965213475,"data_venda":"2023-03-05","nsu":353982,"rv_number":236509,"valor_bruto":460.76,"desconto":32.58,"valor_liquido":428.18,"modalidade":"Voucher","meio_de_pagamento":20,"maquininha":"LG35633694","quantidade_parcelas":1,"parcela":1,"data_recebimento":"2023-03-06"}
+
+
+GET /salesv1/_search
+{
+  "size": 0,
+  "aggs": {
+    "soma_atributo": {
+      "sum": {
+        "field": "valor_bruto"
+      }
+    }
+  }
+}
