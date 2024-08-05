@@ -6,6 +6,8 @@ import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.Result;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.Aggregation;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,12 +118,37 @@ public class SaleRepository {
                                                 .field("nsu")
                                                 .query(FieldValue.of(saleFilter.getNsu()))
                                         )
-                                ).must(m -> m.range(f -> f.field("data_venda").gte(saledate)))
-                                .must(m -> m.range(f -> f.field("data_recebimento").gte(paymentdate)))
+                                ).must(m -> m
+                                        .range(f -> f
+                                                .field("data_venda")
+                                                .gte(saledate)
+                                                .lte(paymentdate)
+                                        )
+                                )
                         )
                 ).build();
         SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
         return response.hits().hits();
+    }
+
+
+    public SearchResponse<Sale> usandoAgregacaoParaSomar(SaleFilter saleFilter) throws IOException {
+        SearchRequest searchRequest = new SearchRequest.Builder().index("sales")
+                .query(q -> q
+                        .match(m -> m
+                                .field("pv")
+                                .query(FieldValue.of(saleFilter.getPv())))
+                ).aggregations("total_vendas", sum -> sum
+                        .sum(s -> s
+                                .field("valor_bruto")
+                                .format("0.00")))
+                .build();
+
+        SearchResponse<Sale> response = openSearchClient.search(searchRequest, Sale.class);
+        Aggregate jsonData = response.aggregations().get("total_vendas");
+        jsonData.sum();
+
+        return response;
     }
 
     public List<Hit<Sale>> findByRangeDateSearch(SaleFilter saleFilter) throws IOException {

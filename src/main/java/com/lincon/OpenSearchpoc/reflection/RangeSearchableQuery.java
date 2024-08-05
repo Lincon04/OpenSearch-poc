@@ -32,7 +32,7 @@ public class RangeSearchableQuery {
     }
 
     protected void updateStartDateOrEndDate(FieldValue attributeValue) {
-        if(rangeSearchable.baseDate().equals(BaseDateEnum.START)){
+        if(rangeSearchable.baseDate().equals(PointDateEnum.START)){
             startDate = JsonData.of(attributeValue);
         }else {
             endDate = JsonData.of(attributeValue);

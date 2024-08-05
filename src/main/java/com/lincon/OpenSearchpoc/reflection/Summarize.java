@@ -7,9 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RangeSearchable {
+public @interface Summarize {
     String attributeName();
-
-    PointDateEnum baseDate();
-
+    String aggregationName();
 }

@@ -7,5 +7,8 @@ import java.util.List;
 
 @Data
 public class SaleResponse {
-    List<Sale> sales = new ArrayList<>();
+    private List<Sale> sales = new ArrayList<>();
+    private String somaValorBruto;
+    private String somaValorLiquido;
+    private String somaDesconto;
 }

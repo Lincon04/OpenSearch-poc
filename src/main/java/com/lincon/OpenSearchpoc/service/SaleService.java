@@ -11,6 +11,7 @@ import com.lincon.OpenSearchpoc.repository.SaleRepositoryNewSearch;
 import lombok.AllArgsConstructor;
 import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.GetResponse;
+import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
@@ -153,16 +154,18 @@ public class SaleService {
     }
 
 
-    public SaleResponse findAll(SaleFilter saleFilter)  {
+    public SaleResponse findAll(SaleFilter saleFilter) {
         try {
-            SaleResponse saleResponse = new SaleResponse();
-            List<Hit<Sale>> retorno = saleRepositoryNewSearch.findAll(saleFilter);
-            if(!retorno.isEmpty()){
-                for (Hit<Sale> hits: retorno){
-                    saleResponse.getSales().add(hits.source());
-                }
-            }
-            return saleResponse;
+            return saleRepositoryNewSearch.findAgg(saleFilter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public SearchResponse<Sale> usandoAgregacaoParaSomar(SaleFilter saleFilter)  {
+        try {
+            return saleRepository.usandoAgregacaoParaSomar(saleFilter);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

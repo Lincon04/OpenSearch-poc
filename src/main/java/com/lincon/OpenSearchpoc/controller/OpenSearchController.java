@@ -3,6 +3,8 @@ package com.lincon.OpenSearchpoc.controller;
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.service.SaleService;
+import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +45,7 @@ public class OpenSearchController {
     @GetMapping("/getv3")
     public String getv3() throws IOException {
         List<Sale> sales = saleService.loadSales();
+        Sale sale = new Sale();
         return saleService.update(sales.get(0));
     }
 
@@ -65,5 +68,10 @@ public class OpenSearchController {
     @GetMapping("/getv6")
     public Sale getv6(SaleFilter saleFilter) {
         return  saleService.findAllBy(saleFilter);
+    }
+
+    @GetMapping("/getv7")
+    public SearchResponse<Sale> getv7(SaleFilter saleFilter) {
+        return saleService.usandoAgregacaoParaSomar(saleFilter);
     }
 }
