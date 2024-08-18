@@ -45,5 +45,8 @@ public class Sale {
     @JsonProperty("data_recebimento")
     private String dataRecebimento;
 
+    @JsonProperty("status")
+    private String status;
+
 
 }

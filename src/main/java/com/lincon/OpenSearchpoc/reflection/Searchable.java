@@ -9,6 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Searchable {
     String attributeName();
-
     ConditionEnum condition() default ConditionEnum.EQUAL;
 }

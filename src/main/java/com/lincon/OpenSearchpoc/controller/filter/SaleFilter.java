@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lincon.OpenSearchpoc.reflection.*;
 import lombok.Data;
+import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.aggregations.Aggregation;
+import org.opensearch.client.opensearch._types.aggregations.CalendarInterval;
 
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +67,12 @@ public class SaleFilter {
     private String groupBy;
 
     @JsonProperty("innerGroup")
+//    @Searchable(attributeName = "innerGroup")
     private List<String> innerGroup;
+
+    private Integer size;
+
+    private Integer from;
 
     @JsonIgnore
     private final Map<String, Aggregation> subAggregations = new HashMap<>();
@@ -83,7 +90,14 @@ public class SaleFilter {
     }
 
     public Map<String, Aggregation> handlerAggregation(){
-        aggregations.put(groupBy, Aggregation.of(a -> a.terms(t-> t.field(groupBy))
+        aggregations.put(groupBy,
+                Aggregation.of(a -> a
+                        .dateHistogram(t-> t.field(groupBy)
+                                .calendarInterval(CalendarInterval.Day)
+                                .order(builder -> builder
+                                        .key(SortOrder.Desc)
+                                )
+                        )
                 .aggregations(handleInnerGroupBy())));
         return aggregations;
     }

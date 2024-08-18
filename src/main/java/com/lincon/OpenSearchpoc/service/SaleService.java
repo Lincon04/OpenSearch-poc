@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.lincon.OpenSearchpoc.controller.filter.SaleFilter;
 import com.lincon.OpenSearchpoc.dto.Sale;
 import com.lincon.OpenSearchpoc.dto.SaleResponse;
+import com.lincon.OpenSearchpoc.dto.SaleV3Response;
 import com.lincon.OpenSearchpoc.repository.SaleRepository;
 import com.lincon.OpenSearchpoc.repository.SaleRepositoryNewSearch;
 import lombok.AllArgsConstructor;
@@ -154,7 +155,7 @@ public class SaleService {
     }
 
 
-    public SaleResponse findAll(SaleFilter saleFilter) {
+    public SaleV3Response findAll(SaleFilter saleFilter) {
         try {
             return saleRepositoryNewSearch.findAgg(saleFilter);
         } catch (IOException e) {
